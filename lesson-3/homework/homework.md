@@ -1,44 +1,134 @@
-# Lesson 3: Importing and Exporting Data
+--EASY
+BULK INSERT Products
+FROM 'C:\Data\products.txt'
+WITH (
+    FIELDTERMINATOR = ',',
+    ROWTERMINATOR = '\n',
+    FIRSTROW = 2
+);
 
-Here are 30 homework tasks for Lesson 3, categorized into easy, medium, and hard levels. These tasks cover:
+CREATE TABLE Products (
+    ProductID INT PRIMARY KEY,
+    ProductName VARCHAR(50),
+    Price DECIMAL(10,2)
+);
 
-✅ Importing Data (BULK INSERT, Excel, Text, XML, JSON)
-✅ Exporting Data (Excel, Text, XML, JSON)
-✅ Comments, Identity column, NULL/NOT NULL values
-✅ Unique Key, Primary Key, Foreign Key, Check Constraint
-✅ Differences between UNIQUE KEY and PRIMARY KEY
+INSERT INTO Products (ProductID, ProductName, Price)
+VALUES 
+(1, 'Mouse', 15.99),
+(2, 'Keyboard', 29.99),
+(3, 'Monitor', 199.99);
 
-Notes before doing the tasks: Tasks should be solved using SQL Server. It does not matter the solutions are uppercase or lowercase, which means case insensitive. Using alies names does not matter in scoring your work. It does not matter whether we close queries with ; or not
-______________________________________
+INSERT INTO Products (ProductID, ProductName, Price)
+VALUES (4, 'USB Hub', NULL);  
 
-## 🟢 Easy-Level Tasks (10)
-1. Define and explain the purpose of BULK INSERT in SQL Server.
-2. List four file formats that can be imported into SQL Server.
-3. Create a table Products with columns: ProductID (INT, PRIMARY KEY), ProductName (VARCHAR(50)), Price (DECIMAL(10,2)).
-4. Insert three records into the Products table using INSERT INTO.
-5. Explain the difference between NULL and NOT NULL with examples.
-6. Add a UNIQUE constraint to the ProductName column in the Products table.
-7. Write a comment in a SQL query explaining its purpose.
-8. Create a table Categories with a CategoryID as PRIMARY KEY and a CategoryName as UNIQUE.
-9. Explain the purpose of the IDENTITY column in SQL Server.
+ALTER TABLE Products
+ADD Stock INT NOT NULL;  
 
-________________________________________
+ALTER TABLE Products
+ADD CONSTRAINT UQ_ProductName UNIQUE (ProductName);
 
-## 🟠 Medium-Level Tasks (10)
-10. Use BULK INSERT to import data from a text file into the Products table.
-11. Create a FOREIGN KEY in the Products table that references the Categories table.
-12. Explain the differences between PRIMARY KEY and UNIQUE KEY with examples.
-13. Add a CHECK constraint to the Products table ensuring Price > 0.
-14. Modify the Products table to add a column Stock (INT, NOT NULL).
-15. Use the ISNULL function to replace NULL values in a column with a default value.
-16. Describe the purpose and usage of FOREIGN KEY constraints in SQL Server.
 
-________________________________________
+INSERT INTO Products (ProductID, ProductName, Price)
+VALUES (5, 'Headphones', 49.99);
 
-## 🔴 Hard-Level Tasks (10)
-17. Write a script to create a Customers table with a CHECK constraint ensuring Age >= 18.
-18. Create a table with an IDENTITY column starting at 100 and incrementing by 10.
-19. Write a query to create a composite PRIMARY KEY in a new table OrderDetails.
-20. Explain with examples the use of COALESCE and ISNULL functions for handling NULL values.
-21. Create a table Employees with both PRIMARY KEY on EmpID and UNIQUE KEY on Email.
-22. Write a query to create a FOREIGN KEY with ON DELETE CASCADE and ON UPDATE CASCADE options.
+CREATE TABLE Categories (
+    CategoryID INT PRIMARY KEY,
+    CategoryName VARCHAR(50) UNIQUE
+);
+
+CREATE TABLE Orders (
+    OrderID INT IDENTITY(1,1) PRIMARY KEY,
+    OrderDate DATE
+);
+
+--MIDDLE
+
+
+BULK INSERT Products
+FROM 'C:\Data\products_data.txt'
+WITH (
+    FIELDTERMINATOR = ',',    
+    ROWTERMINATOR = '\n',     
+    FIRSTROW = 2              
+);
+
+
+ALTER TABLE Products
+ADD CategoryID INT;
+
+
+ALTER TABLE Products
+ADD CONSTRAINT FK_Products_Categories
+FOREIGN KEY (CategoryID) REFERENCES Categories(CategoryID);
+
+
+ALTER TABLE Products
+ADD CONSTRAINT CHK_Price_Positive CHECK (Price > 0);
+
+
+ALTER TABLE Products
+ADD Stock INT NOT NULL DEFAULT 0;
+
+
+SELECT 
+    ProductID, 
+    ProductName, 
+    ISNULL(Price, 0) AS Price
+FROM Products;
+
+
+CREATE TABLE ExampleKeys (
+    ID INT PRIMARY KEY,               
+    Email VARCHAR(100) UNIQUE         
+);
+
+
+--HARD
+
+
+CREATE TABLE Customers (
+    CustomerID INT PRIMARY KEY,
+    FullName VARCHAR(100),
+    Age INT,
+    CONSTRAINT CHK_Age_Adult CHECK (Age >= 18)
+);
+
+
+CREATE TABLE InvoiceNumbers (
+    InvoiceID INT IDENTITY(100, 10) PRIMARY KEY,
+    InvoiceDate DATE
+);
+
+
+CREATE TABLE OrderDetails (
+    OrderID INT,
+    ProductID INT,
+    Quantity INT,
+    PRIMARY KEY (OrderID, ProductID)  
+);
+
+
+SELECT 
+    COALESCE(NULL, NULL, 'Default Value') AS FirstNonNull,  
+    ISNULL(NULL, 'Fallback') AS ReplacedValue               
+;
+
+
+CREATE TABLE Employees (
+    EmpID INT PRIMARY KEY,
+    FullName VARCHAR(100),
+    Email VARCHAR(100) UNIQUE
+);
+
+
+CREATE TABLE Orders (
+    OrderID INT PRIMARY KEY,
+    CustomerID INT,
+    OrderDate DATE,
+    CONSTRAINT FK_Orders_Customers
+    FOREIGN KEY (CustomerID)
+    REFERENCES Customers(CustomerID)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE
+);
